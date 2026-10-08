@@ -1,0 +1,93 @@
+================================================================
+VUIHOC — HƯỚNG DẪN CÀI ĐẶT BẢN DEMO TRÊN LARAGON
+================================================================
+Nền tảng game giáo dục đa môn cho học sinh lớp 6–12.
+Gói demo đã bao gồm sẵn mã nguồn + thư viện vendor + file .env
+cấu hình sẵn + file SQL dữ liệu mẫu.
+
+YÊU CẦU: PHP >= 8.2 (Laragon bản mới đều có sẵn).
+KHÔNG cần cài Composer, KHÔNG cần Node.js.
+
+----------------------------------------------------------------
+BƯỚC 1 — TẠO CƠ SỞ DỮ LIỆU
+----------------------------------------------------------------
+1. Mở Laragon, bấm "Start All".
+2. Mở phpMyAdmin (Laragon → Database → phpMyAdmin).
+3. Tạo database mới tên:  vuihoc
+   (Collation: utf8mb4_unicode_ci)
+
+----------------------------------------------------------------
+BƯỚC 2 — NẠP DỮ LIỆU MẪU (chọn 1 trong 2 cách)
+----------------------------------------------------------------
+Cách A (khuyên dùng) — import file SQL:
+  1. Trong phpMyAdmin, chọn database "vuihoc" vừa tạo.
+  2. Vào tab "Import" → "Choose File" → chọn file:
+       database/vuihoc-demo.sql   (nằm trong gói này)
+  3. Bấm "Import". Xong — đã có sẵn 5 môn, 16 chủ đề,
+     32 bài học, 192 câu hỏi, 9 huy hiệu và 4 tài khoản demo.
+
+Cách B — chạy lệnh migrate + seed (nếu thích):
+  1. Mở terminal tại thư mục code, chạy:
+       php artisan migrate --seed
+  2. Yêu cầu máy đã cài PHP và kết nối được MySQL.
+
+----------------------------------------------------------------
+BƯỚC 3 — COPY CODE VÀO LARAGON
+----------------------------------------------------------------
+1. Giải nén toàn bộ gói này vào:
+       C:\laragon\www\vuihoc
+   (thư mục vuihoc chứa trực tiếp file artisan, thư mục app/...)
+
+2. File .env đã cấu hình sẵn trong gói:
+       APP_NAME=VuiHoc
+       APP_URL=http://localhost:8000
+       DB_DATABASE=vuihoc
+       DB_USERNAME=root
+       DB_PASSWORD=(trống)
+   Nếu MySQL của bạn có mật khẩu root khác, mở file .env
+   và sửa dòng DB_PASSWORD cho đúng.
+
+----------------------------------------------------------------
+BƯỚC 4 — MỞ WEBSITE
+----------------------------------------------------------------
+- Nếu dùng "pretty URL" của Laragon:  http://vuihoc.test
+- Hoặc chạy server tích hợp của Laravel:
+       php artisan serve --port=8000
+  rồi mở:  http://localhost:8000
+
+----------------------------------------------------------------
+BƯỚC 5 — TÀI KHOẢN DEMO
+----------------------------------------------------------------
+  Quản trị viên:
+      admin@vuihoc.local  /  Admin@123
+  Giáo viên:
+      giaovien@vuihoc.local  /  Demo@123
+  Phụ huynh (kèm hồ sơ con "Bé An", lớp 6):
+      phuhuynh@vuihoc.local  /  Demo@123
+  Học sinh (kèm hồ sơ "Minh", lớp 7):
+      hocsinh@vuihoc.local  /  Demo@123
+
+----------------------------------------------------------------
+BƯỚC 6 — API CHO APP MOBILE (tuỳ chọn)
+----------------------------------------------------------------
+API v1 dùng Sanctum bearer token:
+  POST /api/v1/login            {email, password} → token
+  GET  /api/v1/subjects
+  GET  /api/v1/subjects/{slug}/topics
+  POST /api/v1/play/start       {lesson_id, game_type}   (cần token)
+  POST /api/v1/play/{token}/submit  {answers}            (cần token)
+  GET  /api/v1/progress                                  (cần token)
+
+Ví dụ lấy token:
+  curl -X POST http://localhost:8000/api/v1/login ^
+    -H "Content-Type: application/json" ^
+    -d "{\"email\":\"hocsinh@vuihoc.local\",\"password\":\"Demo@123\"}"
+
+----------------------------------------------------------------
+GHI CHÚ
+----------------------------------------------------------------
+- Dữ liệu mẫu (môn, chủ đề, bài học, câu hỏi, huy hiệu) được
+  đánh dấu is_demo = 1 để dễ phân biệt với dữ liệu thật sau này.
+- Nội dung câu hỏi do đội ngũ VuiHoc tự biên soạn, bám sát
+  chương trình phổ thông, không sao chép từ nguồn khác.
+================================================================
