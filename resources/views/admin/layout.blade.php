@@ -21,6 +21,7 @@
                     ['group' => null, 'route' => 'admin.skills.index', 'active' => 'admin.skills.*', 'icon' => '🎯', 'label' => 'Kỹ năng'],
                     ['group' => null, 'route' => 'admin.lessons.index', 'active' => 'admin.lessons.*', 'icon' => '📖', 'label' => 'Bài học'],
                     ['group' => null, 'route' => 'admin.questions.index', 'active' => 'admin.questions.*', 'icon' => '❓', 'label' => 'Câu hỏi'],
+                    ['group' => null, 'route' => 'admin.imports.index', 'active' => 'admin.imports.*', 'icon' => '📥', 'label' => 'Cập nhật dữ liệu học tập'],
                     ['group' => 'Khác', 'route' => 'admin.badges.index', 'active' => 'admin.badges.*', 'icon' => '🏅', 'label' => 'Huy hiệu'],
                     ['group' => null, 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'icon' => '👥', 'label' => 'Người dùng'],
                     ['group' => null, 'route' => 'admin.demo', 'active' => 'admin.demo', 'icon' => '🧹', 'label' => 'Dữ liệu mẫu'],
