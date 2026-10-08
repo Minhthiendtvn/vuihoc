@@ -42,7 +42,7 @@ class LearningContentImportController extends Controller
             }
             $file = $request->file('sql_file');
             $data = $parser->parse(file_get_contents($file->getRealPath()));
-            $counts = $importer->preview($data);
+            $plan = $importer->analyze($data);
             $path = $file->store('learning-imports', 'local');
             if (! $path) {
                 throw new RuntimeException('Không lưu được file tạm. Kiểm tra quyền ghi storage.');
@@ -51,7 +51,7 @@ class LearningContentImportController extends Controller
                 'path' => $path, 'filename' => mb_substr(basename($file->getClientOriginalName()), 0, 200),
                 'hash' => hash_file('sha256', Storage::disk('local')->path($path)),
                 'admin_id' => $request->user()->id, 'expires' => time() + 1800,
-                'token' => bin2hex(random_bytes(32)), 'counts' => $counts,
+                'token' => bin2hex(random_bytes(32)), 'counts' => $plan['counts'], 'plan_hash' => $plan['hash'],
             ]);
 
             return redirect()->route('admin.imports.index');
@@ -74,7 +74,7 @@ class LearningContentImportController extends Controller
         }
         try {
             $pending = $request->session()->get('learning_import');
-            if (! $pending || $pending['admin_id'] !== $request->user()->id || $pending['expires'] < time() || ! hash_equals($pending['token'], $request->string('token')->toString())) {
+            if (! $pending || ! isset($pending['plan_hash']) || $pending['admin_id'] !== $request->user()->id || $pending['expires'] < time() || ! hash_equals($pending['token'], $request->string('token')->toString())) {
                 throw new RuntimeException('Preview đã hết hạn hoặc đã sử dụng. Vui lòng upload lại.');
             }
             $path = Storage::disk('local')->path($pending['path']);
@@ -83,7 +83,7 @@ class LearningContentImportController extends Controller
             }
             set_time_limit(180);
             $data = $parser->parse(file_get_contents($path));
-            $importer->import($data, $request->user()->id, $pending['filename'], $pending['hash']);
+            $importer->import($data, $request->user()->id, $pending['filename'], $pending['hash'], $pending['plan_hash']);
 
             return redirect()->route('admin.imports.index')->with('success', 'Đã cập nhật dữ liệu học tập. Dữ liệu không có trong file được giữ nguyên.');
         } catch (Throwable $error) {

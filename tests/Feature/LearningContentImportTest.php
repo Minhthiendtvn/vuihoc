@@ -6,36 +6,14 @@ use App\Models\User;
 use App\Services\LearningContentImporter;
 use App\Services\LearningSqlParser;
 use Illuminate\Database\QueryException;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
+use Tests\LearningContentTestCase;
 
-class LearningContentImportTest extends TestCase
+class LearningContentImportTest extends LearningContentTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        config(['app.key' => 'base64:'.base64_encode(str_repeat('a', 32)), 'database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:']);
-        DB::purge('sqlite');
-        Storage::fake('local');
-        foreach (['101000_create_subjects', '102000_create_topics', '103000_create_skills', '104000_create_lessons', '105000_create_questions'] as $migration) {
-            (require base_path('database/migrations/2026_10_07_'.$migration.'_table.php'))->up();
-        }
-        Schema::table('lessons', fn (Blueprint $table) => $table->unsignedTinyInteger('grade')->nullable());
-        Schema::table('questions', fn (Blueprint $table) => $table->unsignedTinyInteger('grade')->nullable());
-        (require base_path('database/migrations/2026_10_08_100000_add_summary_to_lessons_table.php'))->up();
-        (require base_path('database/migrations/2026_10_08_110000_create_learning_content_imports_table.php'))->up();
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-        });
-        DB::table('users')->insert(['id' => 1, 'name' => 'Giữ nguyên']);
-    }
-
     private function sql(string $table = 'subjects', int $id = 1, array $overrides = []): string
     {
         $columns = explode(',', LearningSqlParser::COLUMNS[$table]);
@@ -117,13 +95,16 @@ class LearningContentImportTest extends TestCase
         }
     }
 
-    public function test_slug_collision_is_rejected(): void
+    public function test_same_slug_with_different_source_id_reuses_hosting_id(): void
     {
         $parser = new LearningSqlParser;
         $importer = new LearningContentImporter;
         $importer->import($parser->parse($this->sql()), 1, 'a.sql', str_repeat('a', 64));
-        $this->expectException(RuntimeException::class);
-        $importer->preview($parser->parse($this->sql(id: 2)));
+        $data = $parser->parse($this->sql(id: 2, overrides: ['name' => 'Updated']));
+        $this->assertSame(1, $importer->preview($data)['subjects']['update']);
+        $importer->import($data, 1, 'b.sql', str_repeat('b', 64));
+        $this->assertSame(1, DB::table('subjects')->value('id'));
+        $this->assertSame('Updated', DB::table('subjects')->value('name'));
     }
 
     public function test_missing_parent_is_rejected_before_writes(): void
@@ -132,7 +113,7 @@ class LearningContentImportTest extends TestCase
         (new LearningContentImporter)->preview((new LearningSqlParser)->parse($this->sql('topics', 1, ['subject_id' => 999])));
     }
 
-    public function test_reparenting_existing_content_is_rejected(): void
+    public function test_parent_ids_cannot_fall_back_to_hosting_namespace(): void
     {
         $parser = new LearningSqlParser;
         $importer = new LearningContentImporter;

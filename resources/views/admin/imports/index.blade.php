@@ -3,7 +3,8 @@
 @section('content')
 <div class="vh-page-head"><h1 class="vh-title">Cập nhật dữ liệu học tập</h1></div>
 <div class="vh-card">
-    <p>Nhận file SQL UTF-8, tối đa 32 MB / 100.000 bản ghi nội dung. Chỉ cập nhật 9 bảng học liệu theo ID. Dùng dump cùng nguồn ID với database đang chạy.</p>
+    <p>Nhận file SQL UTF-8, tối đa 32 MB / 100.000 bản ghi nội dung. Xuất đủ các bảng cha. Hệ thống ghép học liệu theo slug và cấp cha, giữ nguyên ID hosting và cấp ID mới cho nội dung chưa có.</p>
+    <p>Câu hỏi ghép theo bài học, loại game và nguyên văn câu hỏi; nếu trùng thì dùng thêm thứ tự. Câu hỏi đổi nội dung được thêm mới, câu cũ được giữ lại. Đáp án ghép theo câu hỏi và vị trí.</p>
     <p>Các lệnh DROP, CREATE, TRUNCATE, DELETE và dữ liệu tài khoản, phiên đăng nhập, XP được bỏ qua. Không xóa bản ghi thiếu trong file.</p>
     <p class="vh-hint">Cột “Có sẵn” gồm cả bản ghi không thay đổi. Số lượng được kiểm tra lại khi xác nhận. Hãy backup database trước khi cập nhật nội dung.</p>
     <form method="POST" action="{{ route('admin.imports.preview') }}" enctype="multipart/form-data">
@@ -18,9 +19,9 @@
     <h2>Xem trước: {{ $pending['filename'] }}</h2>
     <p>Preview có hiệu lực 30 phút. Xác nhận sẽ cập nhật nội dung có sẵn và thêm nội dung mới.</p>
     <div class="vh-table-wrap"><table class="vh-table">
-        <thead><tr><th>Bảng</th><th>Trong file</th><th>Thêm mới</th><th>Có sẵn / cập nhật</th></tr></thead>
+        <thead><tr><th>Bảng</th><th>Trong file</th><th>Thêm mới</th><th>Có sẵn / cập nhật</th><th>Đổi ID nguồn → hosting</th></tr></thead>
         <tbody>@foreach ($pending['counts'] as $table => $count)
-            <tr><td>{{ $table }}</td><td>{{ number_format($count['total']) }}</td><td>{{ number_format($count['new']) }}</td><td>{{ number_format($count['update']) }}</td></tr>
+            <tr><td>{{ $table }}</td><td>{{ number_format($count['total']) }}</td><td>{{ number_format($count['new']) }}</td><td>{{ number_format($count['update']) }}</td><td>{{ number_format($count['remapped'] ?? 0) }}</td></tr>
         @endforeach</tbody>
     </table></div>
     <form method="POST" action="{{ route('admin.imports.store') }}">
