@@ -100,6 +100,9 @@ async function askAI() {
 
         if (data.success) {
             answer.textContent = data.answer;
+            if (data.incomplete && data.notice) {
+                answer.textContent += '\n\n⚠️ ' + data.notice;
+            }
         } else {
             answer.textContent =
                 'AI hiện chưa thể trả lời.';

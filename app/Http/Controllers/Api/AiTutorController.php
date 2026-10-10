@@ -13,16 +13,16 @@ class AiTutorController extends Controller
     public function ask(Request $request, ClaudeService $claude): JsonResponse
     {
         $validated = $request->validate([
-            'question'  => ['required', 'string', 'max:3000'],
+            'question' => ['required', 'string', 'max:3000'],
             'lesson_id' => ['nullable', 'integer', 'exists:lessons,id'],
         ]);
 
         try {
             $lesson = null;
 
-            if (!empty($validated['lesson_id'])) {
+            if (! empty($validated['lesson_id'])) {
                 $lesson = Lesson::with([
-                    'skill.topic.subject'
+                    'skill.topic.subject',
                 ])->findOrFail($validated['lesson_id']);
             }
 
@@ -51,11 +51,13 @@ CÂU HỎI CỦA HỌC SINH:
 Hãy trả lời như một gia sư thân thiện và chính xác.
 PROMPT;
 
-            $answer = $claude->ask($prompt);
+            $reply = $claude->reply($prompt);
 
             return response()->json([
                 'success' => true,
-                'answer' => $answer,
+                'answer' => $reply['answer'],
+                'incomplete' => $reply['incomplete'],
+                'notice' => $reply['incomplete'] ? 'Câu trả lời chưa hoàn tất. Bạn hãy hỏi từng phần nhỏ hơn hoặc yêu cầu giải thích ngắn gọn.' : null,
                 'lesson' => $lesson ? [
                     'id' => $lesson->id,
                     'title' => $lesson->title,
@@ -78,7 +80,7 @@ PROMPT;
 
     private function buildLessonContext(?Lesson $lesson): string
     {
-        if (!$lesson) {
+        if (! $lesson) {
             return 'Không có bài học cụ thể. Hãy trả lời dựa trên câu hỏi của học sinh.';
         }
 
