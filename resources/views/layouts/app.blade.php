@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'VuiHoc') — VuiHoc</title>
-    <link rel="stylesheet" href="{{ asset('css/vuihoc.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/vuihoc.css') }}?v={{ filemtime(public_path('css/vuihoc.css')) }}">
     <script defer src="{{ asset('js/alpine.min.js') }}"></script>
 </head>
 <body>
-<header class="vh-header">
+<header class="vh-header" x-data="{ menuOpen: false }">
     <div class="vh-container vh-header-inner">
         <a href="{{ route('home') }}" class="vh-logo">🎓 VuiHoc</a>
-        <nav class="vh-nav">
+        <nav class="vh-nav" :class="{ 'is-open': menuOpen }" @click="menuOpen = false">
             <a href="{{ route('home') }}">Trang chủ</a>
             <a href="{{ route('library.library') }}">Thư viện</a>
+            @if (\Illuminate\Support\Facades\Route::has('ai.tutor'))
+    <a href="{{ route('ai.tutor') }}">🤖 AI Tutor</a>
+@endif
             <a href="{{ route('games.index') }}">🎮 Trò chơi</a>
             <a href="{{ route('progress.index') }}">Tiến độ</a>
             <a href="{{ route('parent.index') }}">Phụ huynh</a>
@@ -33,6 +36,8 @@
                 <a href="{{ route('auth.logout') }}" class="vh-btn vh-btn-ghost">Đăng xuất</a>
             @endauth
         </div>
+        <button type="button" class="vh-menu-btn" @click="menuOpen = !menuOpen"
+                :aria-expanded="menuOpen" aria-label="Mở menu">☰</button>
     </div>
 </header>
 

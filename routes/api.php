@@ -9,7 +9,9 @@ use App\Http\Controllers\Api\LibraryController;
 use App\Http\Controllers\Api\PlayController;
 use App\Http\Controllers\Api\ProgressController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AiTutorController;
 
+Route::post('/ai/tutor', [AiTutorController::class, 'ask']);
 Route::prefix('v1')->name('api.v1.')->group(function () {
     // Công khai
     Route::post('/login', [AuthController::class, 'login'])->name('login');

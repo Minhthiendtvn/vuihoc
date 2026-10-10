@@ -96,7 +96,87 @@
         </div>
     @endif
 </div>
+<section class="lib-section">
+    <div class="vh-card">
+        <h2 class="lib-section-title">✨ Hỏi AI về bài học</h2>
 
+        <p class="lib-section-sub">
+            AI đã biết bạn đang học bài “{{ $lesson->title }}”.
+        </p>
+
+        <textarea
+            id="ai-question"
+            rows="4"
+            style="width:100%;padding:12px;border-radius:12px"
+            placeholder="Nhập câu hỏi của bạn..."
+        ></textarea>
+
+        <div style="margin-top:10px">
+            <button
+                type="button"
+                class="vh-btn vh-btn-primary"
+                onclick="askAI()"
+            >
+                ✨ Hỏi AI
+            </button>
+        </div>
+
+        <div
+            id="ai-loading"
+            style="display:none;margin-top:15px"
+        >
+            ⏳ AI đang suy nghĩ...
+        </div>
+
+        <div
+            id="ai-answer"
+            style="margin-top:15px;white-space:pre-wrap;line-height:1.7"
+        ></div>
+    </div>
+</section>
+
+<script>
+async function askAI() {
+    const question = document.getElementById('ai-question').value.trim();
+    const answer = document.getElementById('ai-answer');
+    const loading = document.getElementById('ai-loading');
+
+    if (!question) {
+        alert('Bạn hãy nhập câu hỏi.');
+        return;
+    }
+
+    answer.textContent = '';
+    loading.style.display = 'block';
+
+    try {
+        const response = await fetch('/api/ai/tutor', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                lesson_id: {{ $lesson->id }},
+                question: question
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            answer.textContent = data.answer;
+        } else {
+            answer.textContent = 'AI hiện chưa thể trả lời.';
+        }
+
+    } catch (error) {
+        answer.textContent = 'Có lỗi kết nối với AI.';
+    } finally {
+        loading.style.display = 'none';
+    }
+}
+</script>
 <section class="lib-section">
     <h2 class="lib-section-title">🎮 Chọn kiểu chơi</h2>
     <p class="lib-section-sub">Mỗi kiểu chơi dùng cùng nội dung bài học nhưng cách trả lời khác nhau. Hãy thử hết nhé!</p>
